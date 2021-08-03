@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Ganache Scan</title>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script type="text/javascript" src="./bignumber.min.js"></script>
+  <script type="text/javascript" src="./web3.js"></script>
+
+  <script type="text/javascript">
+    if (typeof web3 !== "undefined") {
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      // set the provider you want from Web3.providers
+      web3 = new Web3(
+        new Web3.providers.HttpProvider("http://localhost:8545")
+      );
+    }
+
+    console.log(web3);
+
+    if (web3.isConnected()) {
+      console.log("connected");
+    } else {
+      console.log("not connected");
+    }
+
+    let accounts = web3.eth.accounts;
+    console.log(accounts);
+
+    let balance = web3.eth.getBalance(accounts[0]);
+    console.log(web3.fromWei(balance).toNumber() + "ETH");
+
+    for (var i = 0; i < accounts.length; i++) {
+      document.getElementById().innerHTML = accounts[i];
+      document.getElementById().innerHTML =
+        web3.fromWei(web3.eth.getBalance(accounts[i])).toNumber() + "ETH";
+    }
+
+    function table() {
+      var h = [];
+      for (var address of accounts) {
+        h.push("<tr>");
+        h.push("<td>" + address + "</td>");
+        h.push(
+          "<td>" +
+          web3.fromWei(web3.eth.getBalance(address)).toNumber() +
+          "ETH" +
+          "</td>"
+        );
+
+        h.push("</tr>");
+      }
+
+      document.getElementById("tb").innerHTML = h.join("");
+    }
+
+    function sendETH() {
+      let from = document.getElementById("accountFrom").value;
+      console.log();
+      let to = document.getElementById("accountTo").value;
+      let ethValue = document.getElementById("amountETH").value;
+      let txhash = web3.eth.sendTransaction({
+        from: from,
+        to: to,
+        value: web3.toWei(ethValue, "ether"),
+      });
+      console.log(typeof txhash);
+      document.getElementById("txHash").value = txhash;
+      table();
+      getTrxDetail()
+
+
+
+    }
+
+    function getBlockDetail() {
+      var D = [];
+      let num = document.getElementById("blockNum").value;
+
+      web3.eth.getBlock(num, function (error, block) {
+        console.log(block);
+        for (i in block) {
+          D.push("<tr>");
+
+          D.push("<td>" + i + "</td>");
+          D.push("<td>" + block[i] + "</td>");
+
+          D.push("</tr>");
+        }
+        document.getElementById("BD").innerHTML = D.join("");
+      });
+    }
+
+    function getTrxDetail() {
+      var T = [];
+      let trxHash = document.getElementById("txHash").value;
+
+      web3.eth.getTransaction(trxHash, function (error, tx) {
+        console.log(tx);
+        for (j in tx) {
+          T.push("<tr>");
+
+          T.push("<td>" + j + "</td>");
+          T.push("<td>" + tx[j] + "</td>");
+
+          T.push("</tr>");
+        }
+        document.getElementById("trx").innerHTML = T.join("");
+      });
+    }
+
+    function createAccount() {
+      let pwd = document.getElementById("PW").value;
+      web3.personal.newAccount(pwd);
+
+    }
+  </script>
+
+  <style>
+    table,
+    th,
+    tb {
+      border-collapse: collapse;
+      max-width: 736px;
+    }
+
+    table {
+      width: 100%;
+      max-width: 736px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      max-width: 736px;
+      word-break: break-all;
+    }
+  </style>
+
+  <title>Document</title>
+</head>
+
+<body>
+  <div>
+    <h1>Ganache Scan</h1><br>
+    <label for="">Create Account </label>
+    <input type="password" placeholder="Set your PW" value="" id="PW">
+    <button onclick="createAccount()">Create</button>
+  </div>
+  <button onclick="table()">Show</button>
+  <button onclick="sendETH()">Send</button>
+  <button onclick="getBlockDetail()"> Get Block info</button>
+  <button onclick="getTrxDetail()"> Get Trx info</button>
+
+  <br />
+  <label for="">From</label>
+  <input type="text" id="accountFrom" value="" />
+  <label for="">To</label>
+  <input type="text" id="accountTo" value="" />
+  <label for="">Value</label>
+  <input type="text" id="amountETH" value="" />
+  <br />
+  <label for="">Trx hash address</label>
+  <input type="text" id="txHash" value="" placeholder="Enter Trx hash" />
+  <label for="">Search Block Info</label>
+  <input type="text" id="blockNum" value="" placeholder="Enter BlockNum" />
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th>Address</th>
+          <th>Balance(ETH)</th>
+        </tr>
+      </thead>
+      <tbody id="tb">
+        <tr>
+          <td>Press "show" button, address will be loaded</td>
+          <td>Balance</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th colspan="2">Trx Detail</th>
+        </tr>
+      </thead>
+      <tbody id="trx">
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th colspan="2">Block Detail</th>
+        </tr>
+      </thead>
+      <tbody id="BD">
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+
+</html>
