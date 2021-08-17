@@ -1,0 +1,350 @@
+<!Doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.2.3/milligram.min.css">
+
+    <script src="./web3.min.js"></script>
+
+<body>
+    <div>
+        <label>Contract Code</label>
+    </div>
+    <div>
+        <button onclick="init()">Connect Wallet</button>
+        <div id="account"></div>
+
+    </div>
+    <div>
+        <button onclick="getContract()">Get Contract Instance</button>
+        <div id="contract"></div>
+
+    </div>
+    <div>
+        <button onclick="totalSupply()">Total Supply</button>
+        <input type="text" id="total_amount" placeholder="Total deployment"></input>
+
+    </div>
+    <div>
+        <button onclick="balanceOf()">Balance Of This account</button>
+        <input type="text" id="BalAccount" placeholder="Account Address">
+        <input type="text" id="BalanceOf" placeholder="Token Amount" />
+    </div>
+    <div>
+        <button onclick="transfer()">Transfer</button>
+        <input type="text" id="addressTo" placeholder="Send To" />
+        <input type="text" id="amountToken" placeholder="Token Amount" />
+
+
+    </div>
+    <div>
+        <label>Event</label>
+        <input id="eventResult" value="" placeholder="Result"></input>
+    </div>
+</body>
+
+<script type="text/javascript">
+    let provider;
+    let web3;
+    let account;
+    let contract;
+
+    async function init() {
+
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            try {
+                // Request account access if needed
+                await window.ethereum.enable();
+                // Acccounts now exposed
+                web3.eth.getAccounts().then(function (accounts) {
+                    account = accounts[0]
+                    document.getElementById("account").innerText = account
+                })
+            } catch (error) {}
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+            // Use Mist/MetaMask's provider.
+            web3 = window.web3;
+            console.log("Injected web3 detected.");
+        }
+    }
+
+    function getContract() {
+        let abi = [{
+                "inputs": [{
+                    "internalType": "uint256",
+                    "name": "total",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "tokenOwner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "spender",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "tokens",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Approval",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "tokens",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Transfer",
+                "type": "event"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "delegate",
+                        "type": "address"
+                    }
+                ],
+                "name": "allowance",
+                "outputs": [{
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "internalType": "address",
+                        "name": "delegate",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "numTokens",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "approve",
+                "outputs": [{
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "internalType": "address",
+                    "name": "tokenOwner",
+                    "type": "address"
+                }],
+                "name": "balanceOf",
+                "outputs": [{
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "name",
+                "outputs": [{
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [{
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "internalType": "address",
+                        "name": "receiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "numTokens",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transfer",
+                "outputs": [{
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "buyer",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "numTokens",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transferFrom",
+                "outputs": [{
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ]
+        contract = new web3.eth.Contract(abi, "0xD96f697ffCBF30984aBE5857463bF3A506Bf10a1")
+        document.getElementById("contract").innerText = contract._address
+        console.log(contract)
+
+        // listen event
+        // contract.events.SetName({}, function (error, event) {
+        //     console.log(event)
+        //     document.getElementById("eventResult").innerText = event.returnValues.name + ", " + event
+        //         .returnValues.sender
+        // })
+        // document.getElementById("eventResult").innerText = "Listening..."
+    }
+
+    function totalSupply() {
+        contract.methods.totalSupply().call()
+            .then(function (result) {
+                document.getElementById("total_amount").value = result + " TG"
+            });
+    }
+
+    function balanceOf() {
+        let address = ""
+        address = document.getElementById("BalAccount").value
+        console.log(address);
+        contract.methods.balanceOf(address).call()
+            .then(function (Balance) {
+                document.getElementById("BalanceOf").value = Balance + " TG"
+            });
+    }
+
+    function transfer() {
+        let to = ""
+        let amount = ""
+        to = document.getElementById("addressTo").value
+        amount = document.getElementById("amountToken").value
+        contract.methods.transfer(to, amount).send({
+                from: account
+            })
+            .then(function (receipt) {
+                console.log(receipt)
+                console.log(receipt.status)
+                document.getElementById("eventResult").value = receipt.status
+            });
+
+
+    }
+</script>
+
+</html>
