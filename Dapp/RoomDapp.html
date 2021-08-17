@@ -1,0 +1,326 @@
+<!Doctype html>
+<html>
+<title>Room Share</title>
+
+<head>
+    <meta charset="UTF-8">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+
+    <script src="./web3.min.js"></script>
+
+<body
+    style="background-image: url(https://images.unsplash.com/photo-1428366890462-dd4baecf492b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1868&q=80); background-repeat: no-repeat; background-size : cover">
+    <div>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid">
+                <h1 class="badge bg-warning">Hotel</h1>
+        </nav>
+        <header class=" bg-gradient text-white" id="bg_need">
+            <div class="container px-4 text-center">
+                <h1 class="fw-bolder mb-5">
+                    Welcome</h1>
+
+
+            </div>
+        </header>
+    </div>
+    <div class="ms-lg-5" style="width:600px; ">
+        <div>
+            <button type="button" class="btn-dark mb-3" onclick="init()">Connect Wallet</button>
+            <input class="mb-3" type="text" id="account" value=""></input>
+
+
+        </div>
+        <div>
+            <button type="button" class="btn-dark" onclick="getContract()">Get Contract Instance</button>
+            <input type="text" id="contract" value=""></input>
+
+        </div>
+        <div class="mt-5">
+            <input type="text" id="room_search" value="">
+            <button type="button" class="btn-btn-dark" onclick="chkStatus()">Search</button>
+            <br>
+            <button type="button" class="btn-dark" disabled="disabled">Room Status</button>
+            <input type="text" id="room_Status" value=""></input>
+            <br>
+            <button type="button" class="btn-dark" disabled="disabled">Room Price</button>
+            <input type="text" id="room_Price" value=""></input>
+            <br>
+            <button type="button" class="btn-dark" disabled="disabled">Room owner</button>
+            <input type=" text" id="room_Occupant" value=""></input>
+            <br>
+        </div>
+
+        <div class="mt-5">
+
+            <input type="number" id="room_Number" value="" placeholder="Room Number">
+            <input type="number" id="room_lumpSum" value="" placeholder="lump sum">
+            <button type="button" class="btn-dark" onclick="rent()">Rent</button>
+
+        </div>
+
+        <div class="mt-5">
+            <button type="button" class="btn-warning" onclick="roomSet()">Status Setting (Only by Owner)</button>
+
+            <br>
+            <input type="text" id="room_Setting1" value="" placeholder="roomNum"></input>
+            <input type="text" id="room_Setting2" value="" placeholder="update status"></input>
+            <br>
+            <button type="button" class="btn-warning" onclick="priceSet()">Price Setting (Only by Owner)</button>
+            <br>
+            <input type="text" id="room_Price1" value="" placeholder="roomNum">
+            <input type="number" id="room_Price2" value="" placeholder="set Price">
+        </div>
+
+        <div class="mt-5">
+            <label>Event</label>
+            <input type="text" id="eventResult"></input>
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+    let provider;
+    let web3;
+    let account;
+    let contract;
+    let lumpSum
+
+    async function init() {
+
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            try {
+                // Request account access if needed
+                await window.ethereum.enable();
+                // Acccounts now exposed
+                web3.eth.getAccounts().then(function (accounts) {
+                    account = accounts[0]
+                    document.getElementById("account").value = account
+                })
+            } catch (error) {}
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+            // Use Mist/MetaMask's provider.
+            web3 = window.web3;
+            console.log("Injected web3 detected.");
+        }
+        document.getElementById("eventResult").value = "Account Connected"
+    }
+
+    function getContract() {
+        let abi = [{
+                "inputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "_periods",
+                    "type": "uint256"
+                }],
+                "name": "period",
+                "type": "event"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "internalType": "uint256",
+                    "name": "_flat",
+                    "type": "uint256"
+                }],
+                "name": "getCurrentOccupant",
+                "outputs": [{
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "internalType": "uint256",
+                    "name": "_flat",
+                    "type": "uint256"
+                }],
+                "name": "getFlatAvailability",
+                "outputs": [{
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "internalType": "uint256",
+                    "name": "_flat",
+                    "type": "uint256"
+                }],
+                "name": "getPriceOfFlat",
+                "outputs": [{
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                    "internalType": "uint8",
+                    "name": "_flat",
+                    "type": "uint8"
+                }],
+                "name": "rentAFlat",
+                "outputs": [{
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "internalType": "uint8",
+                        "name": "_flat",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "_newAvailability",
+                        "type": "bool"
+                    }
+                ],
+                "name": "setFlatAvailability",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "internalType": "uint8",
+                        "name": "_flat",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_price",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "setPriceOfFlat",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ]
+        contract = new web3.eth.Contract(abi, "0xFA0602eDbAeF28C5b6da801C2654854054Ed5286")
+        document.getElementById("contract").value = contract._address
+
+
+        // listen event
+        // contract.events.cleanRoom({}, function (error, event) {
+        //     console.log(event)
+        //     document.getElementById("eventResult").value = event.returnValues.name + ", " + event
+        //         .returnValues.sender
+        // })
+
+    }
+
+    function chkStatus() {
+        let room_Number = document.getElementById("room_search").value
+
+        contract.methods.getPriceOfFlat(room_Number).call()
+            .then(function (result) {
+                let c = result / 1000000000000000000;
+                document.getElementById("room_Price").value = c
+            })
+
+        contract.methods.getCurrentOccupant(room_Number).call()
+            .then(function (result) {
+                document.getElementById("room_Occupant").value = result
+            })
+
+
+        contract.methods.getFlatAvailability(room_Number).call()
+            .then(function (result) {
+
+                if (result == 0) {
+                    document.getElementById("room_Status").value = "Not available"
+                } else if (result == 1) {
+                    document.getElementById("room_Status").value = "available"
+                }
+            });
+    }
+
+    function rent() {
+        let roomNum = document.getElementById("room_Number").value
+        let lumpSum = document.getElementById("room_lumpSum").value
+        lumpSum = web3.utils.toWei(lumpSum)
+        contract.methods.rentAFlat(roomNum).send({
+            from: account,
+            value: (lumpSum)
+        }).on('receipt', function (receipt) {
+            console.log(receipt);
+            console.log(receipt.events.period.returnValues._periods)
+            document.getElementById("eventResult").value = receipt.events.period.returnValues._periods +
+                " days rented!!";
+        })
+    }
+
+
+    function roomSet() {
+        let e = document.getElementById("room_Setting1").value
+        let f = document.getElementById("room_Setting2").value
+        if (f == "true") {
+            f = 1
+        } else if (f == "false") {
+            f = 0
+        }
+        f = Boolean(f)
+        contract.methods.setFlatAvailability(e, f).send({
+            from: account
+        })
+    }
+
+    function priceSet() {
+        let g = document.getElementById("room_Price1").value
+        let h = document.getElementById("room_Price2").value
+        h = web3.utils.toWei(h)
+
+        contract.methods.setPriceOfFlat(g, h).send({
+            from: account
+        })
+    }
+</script>
+<style>
+    button input {
+        margin-top: 5px;
+
+    }
+</style>
+
+</html>
