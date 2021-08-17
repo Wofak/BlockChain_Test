@@ -27,7 +27,7 @@
             </div>
         </header>
     </div>
-    <div class="ms-lg-5" style="width:600px; ">
+    <div id="left-box" class="ms-lg-5" style="width:600px; ">
         <div>
             <button type="button" class="btn-dark mb-3" onclick="init()">Connect Wallet</button>
             <input class="mb-3" type="text" id="account" value=""></input>
@@ -52,10 +52,15 @@
             <button type="button" class="btn-dark" disabled="disabled">Room owner</button>
             <input type=" text" id="room_Occupant" value=""></input>
             <br>
+
         </div>
 
         <div class="mt-5">
+            <input type="text" id="ownerAddress" value="" placeholder="Type your address">
+            <input type="password" id="pwNum" value="" placeholder="PW">
 
+
+            <br>
             <input type="number" id="room_Number" value="" placeholder="Room Number">
             <input type="number" id="room_lumpSum" value="" placeholder="lump sum">
             <button type="button" class="btn-dark" onclick="rent()">Rent</button>
@@ -68,18 +73,24 @@
             <br>
             <input type="text" id="room_Setting1" value="" placeholder="roomNum"></input>
             <input type="text" id="room_Setting2" value="" placeholder="update status"></input>
+
             <br>
             <button type="button" class="btn-warning" onclick="priceSet()">Price Setting (Only by Owner)</button>
             <br>
             <input type="text" id="room_Price1" value="" placeholder="roomNum">
             <input type="number" id="room_Price2" value="" placeholder="set Price">
         </div>
-
-        <div class="mt-5">
-            <label>Event</label>
-            <input type="text" id="eventResult"></input>
-        </div>
     </div>
+
+    <div id="right-box">
+        <label>Event</label>
+        <input type="text" id="eventResult"></input>
+        <div id="QR_area" class="float-end me-5 mb-5 mt-5">
+
+        </div>
+
+    </div>
+
 </body>
 
 <script type="text/javascript">
@@ -100,6 +111,7 @@
                 web3.eth.getAccounts().then(function (accounts) {
                     account = accounts[0]
                     document.getElementById("account").value = account
+                    document.getElementById("ownerAddress").value = account
                 })
             } catch (error) {}
         }
@@ -237,7 +249,7 @@
                 "type": "function"
             }
         ]
-        contract = new web3.eth.Contract(abi, "0xFA0602eDbAeF28C5b6da801C2654854054Ed5286")
+        contract = new web3.eth.Contract(abi, "0x465F416407a9b173D9e2129AAD87608912522058")
         document.getElementById("contract").value = contract._address
 
 
@@ -276,7 +288,19 @@
             });
     }
 
-    function rent() {
+    function getQR() {
+        let pwNum = document.getElementById("pwNum").value
+        let ownerAddress = document.getElementById("ownerAddress").value
+        let QRinput = ownerAddress + pwNum
+
+        console.log('QRinput', QRinput)
+        document.getElementById("QR_area").innerHTML =
+            '<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' + QRinput +
+            '" alt="" class="ms-5"> <br><p>This is your room key, keep it safe<p>'
+
+
+    }
+    async function rent() {
         let roomNum = document.getElementById("room_Number").value
         let lumpSum = document.getElementById("room_lumpSum").value
         lumpSum = web3.utils.toWei(lumpSum)
@@ -288,8 +312,11 @@
             console.log(receipt.events.period.returnValues._periods)
             document.getElementById("eventResult").value = receipt.events.period.returnValues._periods +
                 " days rented!!";
+            getQR()
         })
     }
+
+
 
 
     function roomSet() {
@@ -304,6 +331,7 @@
         contract.methods.setFlatAvailability(e, f).send({
             from: account
         })
+
     }
 
     function priceSet() {
@@ -317,9 +345,24 @@
     }
 </script>
 <style>
-    button input {
-        margin-top: 5px;
+    button,
+    input {
+        margin: 1px;
 
+    }
+
+    #left-box {
+        width: 300px;
+
+
+        float: left
+    }
+
+    #right-box {
+        width: 300px;
+
+
+        float: left
     }
 </style>
 
