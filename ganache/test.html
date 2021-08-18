@@ -1,0 +1,302 @@
+// 손정습님 파일
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Etherseupcan</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+
+    <script type="text/javascript" src="./bignumber.min.js"></script>
+    <script type="text/javascript" src="./web3.js"></script>
+    <script type="text/javascript">
+        if (typeof web3 !== "undefined") {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            // set the provider you want from Web3.providers
+            web3 = new Web3(
+                new Web3.providers.HttpProvider("http://localhost:8545")
+            );
+        }
+        // console.log(web3);
+
+        if (web3.isConnected()) {
+            console.log("connected");
+        } else {
+            console.log("not connected");
+        }
+
+        let accounts = web3.eth.accounts;
+        const etherCommandList = Object.keys(web3.eth);
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Header/logo Title */
+        .header {
+            padding: 60px;
+            text-align: left;
+            background: #21325b;
+            color: white;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Style the body */
+        body {
+            font-family: Arial;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* Style the top navigation bar */
+        .cumstomNavbar {
+            display: flex;
+            background-color: #333;
+            /* justify-content: center; */
+        }
+
+        /* Style the navigation bar links */
+        .cumstomNavbar a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        /* Change color on hover */
+        .cumstomNavbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Create two unequal columns that sits next to each other */
+        /* Sidebar/left column */
+        .side {
+            flex: 30%;
+            background-color: #f1f1f1;
+            padding: 20px;
+        }
+
+        /* Main column */
+        .main {
+            flex: 70%;
+            background-color: white;
+            padding: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 20px;
+            text-align: center;
+            background: #ddd;
+        }
+
+        /* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+        @media screen and (max-width: 700px) {
+
+            .row,
+            .navbar {
+                flex-direction: column;
+            }
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Note -->
+    <div style="background: #ffff; padding: 10px">
+        <img style="width: auto; height: 30px" src="https://etherscan.io/images/logo-ether.png?v=0.0.2" alt="" />
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1>The Ethereum Blockchain Explorer</h1>
+        <div id="currentblock"></div>
+        <h3>Send ETH</h3>
+        <div class="input-group">
+            <div class="form-outline" style="display: flex">
+                <select id="fromAccount" class="form-select form-select-sm"></select>
+
+                <select id="toAccount" style="margin-left: 10px" class="form-select form-select-sm"></select>
+
+                <input style="width: 50%; margin-left: 10px" class="form-control" type="number" id="etherAmmount"
+                    placeholder="ether ammount" />
+            </div>
+            <button type="button" class="btn btn-primary" onclick="sendEther();">
+                <label>send</label>
+            </button>
+        </div>
+        <br />
+        <h3>Get Block Information</h3>
+        <div class="input-group" style="width: 30%">
+            <input type="text" id="blocknumber" class="form-control" placeholder="Serach Block Nubmer"></input>
+            <button type="button" class="btn btn-primary" onclick="searchBlockInfo();">
+                <label>Search</label>
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="cumstomNavbar">
+        <a href="#"></a>
+    </nav>
+
+    <div class="container">
+        <aside class="side">
+            <h2>Ganache-cli Commands</h2>
+            <table style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>web3 eth command</th>
+                    </tr>
+                </thead>
+                <tbody id="tb_body1"></tbody>
+            </table>
+        </aside>
+
+        <div class="main">
+            <div>
+                <table style="width: 100%">
+                    <thead>
+                        <tr>
+                            <th>지갑 주소</th>
+                            <th>보유 ETH</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb_body2"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        // create init list
+        // 1. block number
+        const currentBlockNumber = web3.eth.blockNumber;
+        // 2. account list
+        const accountList = [];
+        for (let account of accounts) {
+            var item = {};
+            var balance = web3.eth.getBalance(account);
+            var ether = web3.fromWei(balance).toNumber();
+
+            // console.log(account, ether);
+            item.account = account;
+            item.eth = ether;
+            accountList.push(item);
+        }
+
+
+        function loadCurrentBlock() {
+            // console.log(currentBlockNumber);
+            document.getElementById("currentblock").innerHTML =
+                `<h3>Current Block Number is ${currentBlockNumber}</h3>`;
+        }
+
+        function searchBlockInfo() {
+            let _blockNum = parseInt(document.getElementById("blocknumber").value);
+
+            if (_blockNum > currentBlockNumber) {
+                window.alert("현재 생성되지 않은 블록입니다.");
+            } else {
+                let blockInfo = web3.eth.getBlock(parseInt(_blockNum));
+                console.log(blockInfo);
+            }
+        }
+
+
+        function sendEther() {
+            let _fromAccount = document.getElementById("fromAccount").value;
+            let _toAccount = document.getElementById("toAccount").value;
+            let _etherAmmount =
+                document.getElementById("etherAmmount").value;
+
+            // console.log("전송 주소 : ", _fromAccount);
+            // console.log("받는 주소 : ", _toAccount);
+            // console.log("보내고 싶은 이더량", _etherAmmount);
+
+            if ((_fromAccount == "") | (_toAccount == "")) {
+                window.alert("주소가 비었습니다.");
+            } else {
+                web3.eth.sendTransaction({
+                    from: _fromAccount,
+                    to: _toAccount,
+                    value: web3.toWei(_etherAmmount, "ether"),
+                });
+
+                window.location.reload();
+            }
+        }
+
+
+        function loadAccounts() {
+            var h = [];
+            h.push(`<option value="">주소를 선택하세요.</option>`);
+
+            for (var item of accountList) {
+                h.push(
+                    `<option value="${item.account}">${item.account}</option>`
+                );
+            }
+            // console.table(h);
+            document.getElementById("fromAccount").innerHTML = h.join("");
+            document.getElementById("toAccount").innerHTML = h.join("");
+        }
+
+        function renderCommands() {
+            var h = [];
+            for (var item of etherCommandList) {
+                h.push("<tr>");
+                h.push("<td>" + item + "</td>");
+                h.push("</tr>");
+            }
+            document.getElementById("tb_body1").innerHTML = h.join("");
+        }
+
+        function renderAccounts() {
+            var h = [];
+            for (var item of accountList) {
+                h.push("<tr>");
+                h.push("<td>" + item.account + "</td>");
+                h.push("<td>" + item.eth + "</td>");
+                h.push("</tr>");
+            }
+            document.getElementById("tb_body2").innerHTML = h.join("");
+        }
+
+        function createNewAccount(_pw) {
+            web3.personal.newAccount(_pw);
+        }
+
+        function unlockAccount(_account, _pw) {
+            web3.personal.unlockAccount(_account, _pw);
+        }
+
+        renderAccounts();
+        renderCommands();
+        loadAccounts();
+        loadCurrentBlock();
+    </script>
+</body>
+
+</html>

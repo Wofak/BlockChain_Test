@@ -43,84 +43,7 @@
                 web3.fromWei(web3.eth.getBalance(accounts[i])).toNumber() + "ETH";
         }
 
-        function table() {
-            var h = [];
-            for (var address of accounts) {
-                h.push("<tr>");
-                h.push("<td>" + address + "</td>");
-                h.push(
-                    "<td>" +
-                    web3.fromWei(web3.eth.getBalance(address)).toNumber() +
-                    "ETH" +
-                    "</td>"
-                );
 
-                h.push("</tr>");
-            }
-
-            document.getElementById("tb").innerHTML = h.join("");
-        }
-
-        function sendETH() {
-            let from = document.getElementById("accountFrom").value;
-            console.log();
-            let to = document.getElementById("accountTo").value;
-            let ethValue = document.getElementById("amountETH").value;
-            let txhash = web3.eth.sendTransaction({
-                from: from,
-                to: to,
-                value: web3.toWei(ethValue, "ether"),
-            });
-            console.log(typeof txhash);
-            document.getElementById("txHash").value = txhash;
-            table();
-            getTrxDetail()
-
-
-
-        }
-
-        function getBlockDetail() {
-            var D = [];
-            let num = document.getElementById("blockNum").value;
-
-            web3.eth.getBlock(num, function (error, block) {
-                console.log(block);
-                for (i in block) {
-                    D.push("<tr>");
-
-                    D.push("<td>" + i + "</td>");
-                    D.push("<td>" + block[i] + "</td>");
-
-                    D.push("</tr>");
-                }
-                document.getElementById("BD").innerHTML = D.join("");
-            });
-        }
-
-        function getTrxDetail() {
-            var T = [];
-            let trxHash = document.getElementById("txHash").value;
-
-            web3.eth.getTransaction(trxHash, function (error, tx) {
-                console.log(tx);
-                for (j in tx) {
-                    T.push("<tr>");
-
-                    T.push("<td>" + j + "</td>");
-                    T.push("<td>" + tx[j] + "</td>");
-
-                    T.push("</tr>");
-                }
-                document.getElementById("trx").innerHTML = T.join("");
-            });
-        }
-
-        function createAccount() {
-            let pwd = document.getElementById("PW").value;
-            web3.personal.newAccount(pwd);
-
-        }
 
         function identifyInput() {
 
@@ -134,11 +57,19 @@
                     T.push("<table>")
                     T.push("<th colspan=\"2\">" + "Transaction Detail" + "</th>")
                     for (j in tx) {
+                        console.log(j)
                         T.push("<tr>");
-
                         T.push("<td>" + j + "</td>");
-                        T.push("<td>" + tx[j] + "</td>");
 
+                        if (j == "blockNumber") {
+                            T.push('<td ondblclick="test()" id="second_search">' + tx[j] + "</td>");
+                        } else if (j == "from") {
+                            T.push('<td ondblclick="testAccFrom()" id="from">' + tx[j] + '</td>');
+                        } else if (j == "to") {
+                            T.push('<td ondblclick="testAccTo()" id="to">' + tx[j] + '</td>');
+                        } else {
+                            T.push('<td>' + tx[j] + "</td>");
+                        }
                         T.push("</tr>");
                     }
                     document.getElementById("scan_result").innerHTML = T.join("");
@@ -147,31 +78,94 @@
                 document.getElementById("scan_result").innerHTML = "  Balance : " +
                     web3.fromWei(web3.eth.getBalance(input)).toNumber() +
                     "  ETH"
-
             } else if (typeof input == 'string') {
                 let D = [];
                 web3.eth.getBlock(input, function (error, block) {
                     console.log(block);
                     D.push("<table>")
-                    D.push("<th colspan=\"2\">" + "Block Detail" + "</th>")
-
+                    D.push('<th colspan="2">' + "Block Detail" + "</th>")
                     for (i in block) {
                         D.push("<tr>");
-
                         D.push("<td>" + i + "</td>");
-                        D.push("<td>" + block[i] + "</td>");
+                        if (i == "transactions") {
+                            D.push('<td ondblclick="test()" id="second_search">' + block[i] + '</td>');
 
+                        } else {
+                            D.push('<td>' + block[i] + '</td>');
+                        }
                         D.push("</tr>");
                     }
                     D.push("</table>")
                     document.getElementById("scan_result").innerHTML = D.join("");
                 });
             }
+        }
 
+        function testAccFrom() {
+            let addressFrom = document.getElementById("from").innerText
+            document.getElementById("scan_result").innerHTML = "  Balance : " +
+                web3.fromWei(web3.eth.getBalance(addressFrom)).toNumber() +
+                "  ETH"
+        }
+
+        function testAccTo() {
+            let addressTo = document.getElementById("to").innerText
+            document.getElementById("scan_result").innerHTML = "  Balance : " +
+                web3.fromWei(web3.eth.getBalance(addressTo)).toNumber() +
+                "  ETH"
+        }
+
+        function test() {
+            let second_input = document.getElementById("second_search").innerText
+
+            if (second_input.length === 66) {
+                let T = []
+                web3.eth.getTransaction(second_input, function (error, tx) {
+                    console.log(tx);
+                    T.push("<table>")
+                    T.push("<th colspan=\"2\">" + "Transaction Detail" + "</th>")
+                    for (j in tx) {
+                        console.log(j)
+                        T.push("<tr>");
+                        T.push("<td>" + j + "</td>");
+
+                        if (j == "blockNumber") {
+                            T.push('<td ondblclick="test()" id="second_search">' + tx[j] + "</td>");
+                        } else if (j == "from") {
+                            T.push('<td ondblclick="testAccFrom()" id="from">' + tx[j] + '</td>');
+                        } else if (j == "to") {
+                            T.push('<td ondblclick="testAccTo()" id="to">' + tx[j] + '</td>');
+                        } else {
+                            T.push('<td>' + tx[j] + "</td>");
+                        }
+                        T.push("</tr>");
+                    }
+                    document.getElementById("scan_result").innerHTML = T.join("");
+                });
+
+            } else if (typeof second_input == 'string') {
+                let D = [];
+                web3.eth.getBlock(second_input, function (error, block) {
+                    console.log(block);
+                    D.push("<table>")
+                    D.push('<th colspan="2">' + "Block Detail" + "</th>")
+                    for (i in block) {
+                        D.push("<tr>");
+                        D.push("<td>" + i + "</td>");
+                        if (i == "transactions") {
+                            D.push('<td ondblclick="test()" id="second_search">' + block[i] + '</td>');
+
+                        } else {
+                            D.push('<td>' + block[i] + '</td>');
+                        }
+                        D.push("</tr>");
+                    }
+                    D.push("</table>")
+                    document.getElementById("scan_result").innerHTML = D.join("");
+                });
+            }
         }
     </script>
-
-
 
     <title>Document</title>
 </head>
@@ -181,44 +175,46 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">Ganache Scan</a>
-
         </nav>
-        <header class="bg-primary bg-gradient text-white">
+        <header class=" bg-gradient text-white" id="bg_need">
             <div class="container px-4 text-center">
                 <h1 class="fw-bolder mb-5">Welcome to Ganache Scan</h1>
 
                 <div class="mb-5">
-                    <input type="text" id="search_input" value="">
+                    <input type="text" id="search_input" value="" placeholder="Blcok-Num,TRX,Account">
                     <button onclick="identifyInput()">Search</button>
                 </div>
             </div>
-
-
         </header>
-
     </div>
-    <div id="scan_result" class="row gx-4 justify-content-center">
-    </div>
-
+    <section>
+        <div id="scan_result" class="row gx-4 justify-content-center pb-5">
+        </div>
+        <footer class="text-white fixed-bottom" id="bg_need">
+            <div class="container px-3 text-center">
+                <h6>Scan</h6>
+            </div>
+        </footer>
+    </section>
 </body>
 <style>
     table,
     th,
     tb {
         border-collapse: collapse;
-        max-width: 736px;
+        max-width: 800px;
     }
 
     table {
         width: 100%;
-        max-width: 736px;
+        max-width: 800px;
     }
 
     th,
     td {
         border: 1px solid #ddd;
         padding: 10px;
-        max-width: 736px;
+        max-width: 800px;
         word-break: break-all;
     }
 
@@ -226,6 +222,11 @@
         width: 800px;
         word-break: break-all;
         margin: auto
+    }
+
+    #bg_need {
+        background-color: #293961;
+
     }
 </style>
 
